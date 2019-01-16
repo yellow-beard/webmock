@@ -107,6 +107,14 @@ module WebMock
     Config.instance.show_stubbing_instructions
   end
 
+  def self.stub_request_snippet_class
+    Config.instance.stub_request_snippet_class
+  end
+
+  def self.stub_request_snippet_class=(klass)
+    Config.instance.stub_request_snippet_class = klass
+  end
+
   def self.reset!
     WebMock::RequestRegistry.instance.reset!
     WebMock::StubRegistry.instance.reset!

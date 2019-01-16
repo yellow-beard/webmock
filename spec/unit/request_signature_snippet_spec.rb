@@ -22,6 +22,14 @@ RSpec.describe WebMock::RequestSignatureSnippet do
     request_signature.body = request_signature_body
   end
 
+  class CustomStubRequestSnippetClass < WebMock::StubRequestSnippet
+    CUSTOM_OUTPUT = 'custom output'
+
+    def to_s(show_body = true)
+      CUSTOM_OUTPUT
+    end
+  end
+
   describe "#stubbing_instructions" do
     context "with stubbing instructions turned off" do
       before :each do
@@ -41,6 +49,21 @@ RSpec.describe WebMock::RequestSignatureSnippet do
       it "returns a stub snippet" do
         expect(subject.stubbing_instructions).to include(
           "You can stub this request with the following snippet:"
+        )
+      end
+    end
+
+    context 'with a custom stub_request_snippet_class' do
+      around do |example|
+        default_class = WebMock.stub_request_snippet_class
+        WebMock.stub_request_snippet_class = CustomStubRequestSnippetClass
+        example.run
+        WebMock.stub_request_snippet_class = default_class
+      end
+
+      it 'uses the custom class to render' do
+        expect(subject.stubbing_instructions).to eq(
+          "You can stub this request with the following snippet:\n\n#{CustomStubRequestSnippetClass::CUSTOM_OUTPUT}"
         )
       end
     end
@@ -83,6 +106,23 @@ RSpec.describe WebMock::RequestSignatureSnippet do
       it "returns nil" do
         WebMock.reset!
         expect(subject.request_stubs).to be nil
+      end
+    end
+
+    context 'with a custom stub_request_snippet_class' do
+      around do |example|
+        WebMock.hide_body_diff!
+        default_class = WebMock.stub_request_snippet_class
+        WebMock.stub_request_snippet_class = CustomStubRequestSnippetClass
+        example.run
+        WebMock.stub_request_snippet_class = default_class
+        WebMock.show_body_diff!
+      end
+
+      it 'uses the custom class to render' do
+        result = subject.request_stubs
+        result.sub!("registered request stubs:\n\n", "")
+        expect(result).to eq(CustomStubRequestSnippetClass::CUSTOM_OUTPUT)
       end
     end
   end

@@ -14,7 +14,7 @@ module WebMock
       return unless WebMock.show_stubbing_instructions?
 
       "You can stub this request with the following snippet:\n\n" +
-        WebMock::StubRequestSnippet.new(request_stub).to_s
+        WebMock.stub_request_snippet_class.new(request_stub).to_s
     end
 
     def request_stubs
@@ -22,7 +22,7 @@ module WebMock
 
       text = "registered request stubs:\n".dup
       WebMock::StubRegistry.instance.request_stubs.each do |stub|
-        text << "\n#{WebMock::StubRequestSnippet.new(stub).to_s(false)}"
+        text << "\n#{WebMock.stub_request_snippet_class.new(stub).to_s(false)}"
         add_body_diff(stub, text) if WebMock.show_body_diff?
       end
       text
